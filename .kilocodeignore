@@ -1,0 +1,97 @@
+# Kilo ignore patterns - files/folders Kilo should not scan
+
+# Build outputs
+/build/
+/android/build/
+/ios/build/
+/ios/DerivedData/
+
+# Dependency directories
+/.dart_tool/
+/.pub-cache/
+/.pub/
+/.packages
+/.flutter-plugins
+/.flutter-plugins-dependencies
+
+# IDE directories
+/.idea/
+/.vscode/
+*.code-workspace
+*.iml
+*.ipr
+*.iws
+
+# OS metadata
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Logs and temp files
+*.log
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Coverage reports
+/coverage/
+*.lcov
+
+# Flutter specific
+/.fvm/
+/.pana/
+/.flutter/
+/.symbols
+
+# Git directory
+/.git/
+
+# Documentation (we want to scan docs/ but not other doc folders)
+**/doc/api/
+
+# Node modules (if any)
+/node_modules/
+
+# Python virtual environments
+/.venv/
+/venv/
+/env/
+
+# Android specific
+/android/.gradle/
+/android/.cxx/
+/android/.externalNativeBuild/
+/android/local.properties
+/android/gradle-wrapper.jar
+
+# iOS specific
+/ios/Pods/
+/ios/.symlinks/
+/ios/.generated/
+/ios/Flutter/.last_build_id
+/ios/Flutter/Flutter.framework
+/ios/Flutter/Flutter.podspec
+/ios/Flutter/Generated.xcconfig
+/ios/Flutter/app.flx
+/ios/Flutter/app.zip
+/ios/Flutter/flutter_assets/
+
+# Secrets and environment files
+.env
+.env.local
+.env.*.local
+secrets.json
+*.p12
+*.key
+*.pem
+*.crt
+
+# Build artifacts
+*.apk
+*.ipa
+*.app
+*.dmg
+*.exe
+*.msi

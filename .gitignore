@@ -1,0 +1,116 @@
+# Flutter
+*.lock
+*.log
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+ios/.generated/
+ios/Flutter/.last_build_id
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Flutter/app.flx
+ios/Flutter/app.zip
+ios/Flutter/flutter_assets/
+ios/Flutter/flutter_export_environment.sh
+ios/ServiceDefinitions.json
+ios/Runner/GeneratedPluginRegistrant.*
+.DS_Store
+Thumbs.db
+
+# Android
+android/.gradle
+android/.idea
+android/gradle-wrapper.jar
+android/local.properties
+android/**/build/
+android/**/proguard/
+android/**/lint/
+android/captures/
+android/.externalNativeBuild
+android/.cxx
+
+# iOS
+ios/**/*.mode1v3
+ios/**/*.mode2v3
+ios/**/*.moved-aside
+ios/**/*.pbxuser
+ios/**/*.perspectivev3
+ios/**/*.pyc
+ios/**/*.sync/
+ios/**/.sconsign.dblite
+ios/**/.tags*
+ios/**/.vagrant/
+ios/**/DerivedData/
+ios/**/Icon?
+ios/**/Pods/
+ios/**/xcuserdata
+
+# IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Secrets
+*.p12
+*.key
+*.pem
+*.crt
+secrets.json
+
+# Build outputs
+*.apk
+*.ipa
+*.dmg
+*.app
+*.exe
+*.msi
+*.deb
+*.rpm
+
+# Coverage
+coverage/
+*.lcov
+
+# Temp files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Misc
+.fvm/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pana/
+.pubignore
+.pana/
+.flutter/
+.symbols
+.attachments
