@@ -453,6 +453,13 @@ class _GameScreenState extends ConsumerState<GameScreen>
           SafeArea(
             child: Column(
               children: [
+                // Always reserve space for check banner to prevent board jump
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  child: _showCheckBanner
+                      ? _buildCheckBanner()
+                      : const SizedBox(height: 36), // match banner height
+                ),
                 _buildHeader(context),
                 if (widget.config.hasTimeLimit && _timerEvent != null)
                   _buildTimerRow(_timerEvent!)
@@ -460,38 +467,37 @@ class _GameScreenState extends ConsumerState<GameScreen>
                   _buildTurnRow(),
                 const SizedBox(height: 8),
                 Expanded(child: Center(child: _buildBoard(skin, boardSkin))),
+                Visibility(
+                  visible: _botThinking,
+                  maintainSize: true,
+                  maintainAnimation: true,
+                  maintainState: true,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 12, bottom: 4),
+                    child: Center(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: _modeColor.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: _modeColor.withValues(alpha: 0.4)),
+                        ),
+                        child: Row(mainAxisSize: MainAxisSize.min, children: [
+                          SizedBox(width: 14, height: 14,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2, color: _modeColor)),
+                          const SizedBox(width: 8),
+                          Text('Bot thinking…',
+                              style: AppTheme.labelSmall.copyWith(color: _modeColor)),
+                        ]),
+                      ),
+                    ),
+                  ),
+                ),
                 _buildBottom(gameState),
               ],
             ),
           ),
-          if (_botThinking)
-            Positioned(
-              bottom: 80, left: 0, right: 0,
-              child: Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: _modeColor.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: _modeColor.withValues(alpha: 0.4)),
-                  ),
-                  child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    SizedBox(width: 14, height: 14,
-                        child: CircularProgressIndicator(
-                            strokeWidth: 2, color: _modeColor)),
-                    const SizedBox(width: 8),
-                    Text('Bot thinking…',
-                        style: AppTheme.labelSmall.copyWith(color: _modeColor)),
-                  ]),
-                ),
-              ),
-            ),
-          // Check banner
-          if (_showCheckBanner)
-            Positioned(
-              top: 0, left: 0, right: 0,
-              child: _buildCheckBanner(),
-            ),
           if (gameState == GameState.checkmate ||
               gameState == GameState.stalemate ||
               timerExpired)
@@ -1006,22 +1012,22 @@ class _GameScreenState extends ConsumerState<GameScreen>
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
-        if (_board.capturedWhitePieces.isNotEmpty || _board.capturedBlackPieces.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _buildCapturedList(_board.capturedWhitePieces), // Black captured these
-                _buildCapturedList(_board.capturedBlackPieces), // White captured these
-              ],
-            ),
+        Container(
+          constraints: const BoxConstraints(minHeight: 28),
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(child: Align(alignment: Alignment.centerLeft, child: _buildCapturedList(_board.capturedWhitePieces))), // Black captured these
+              Expanded(child: Align(alignment: Alignment.centerRight, child: _buildCapturedList(_board.capturedBlackPieces))), // White captured these
+            ],
           ),
+        ),
 
-        if (_board.moveHistory.isNotEmpty)
-          Container(
-            height: 28,
-            margin: const EdgeInsets.only(bottom: 8),
+        Container(
+          height: 28,
+          margin: const EdgeInsets.only(bottom: 8),
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               reverse: true, // Show latest moves first on the right
@@ -1065,11 +1071,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
                       color: Colors.red, letterSpacing: 2, fontSize: 13)),
             ]),
           ),
-        if (_selectedPiece != null)
-          Text(
-            '${_validMoves.length} ${S.get("moves")}',
-            style: AppTheme.labelSmall.copyWith(color: _modeColor),
-          ),
+
       ]),
     );
   }
