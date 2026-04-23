@@ -72,6 +72,7 @@ class ShuffleService {
         final shuffledPiece = piece.copyWith(
           position: position,
           isRevealed: false,
+          apparentType: Piece.getApparentTypeFromPosition(position, color),
         );
         squares[position.rank][position.file] = shuffledPiece;
         pieceIndex++;
@@ -86,6 +87,7 @@ class ShuffleService {
         final shuffledPiece = piece.copyWith(
           position: pawnPosition,
           isRevealed: false,
+          apparentType: Piece.getApparentTypeFromPosition(pawnPosition, color),
         );
         squares[pawnPosition.rank][pawnPosition.file] = shuffledPiece;
         pieceIndex++;

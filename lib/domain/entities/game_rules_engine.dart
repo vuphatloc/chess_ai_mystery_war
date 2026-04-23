@@ -155,11 +155,7 @@ class GameRulesEngine {
         if (newPos.isValid) {
           final targetPiece = board.getPieceAt(newPos);
           if (targetPiece == null || targetPiece.color != king.color) {
-            // Check if move puts king in check
-            final simulatedBoard = board.movePiece(king, newPos);
-            if (!_isKingInCheck(simulatedBoard, king.color)) {
-              moves.add(newPos);
-            }
+            moves.add(newPos);
           }
         }
       }

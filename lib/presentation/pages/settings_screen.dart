@@ -1,31 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/l10n/app_strings.dart';
+import '../../../core/l10n/language_provider.dart';
+import '../../../domain/models/skin_registry.dart';
+import '../../../domain/providers/user_provider.dart';
+import '../../../domain/services/audio_service.dart';
 import '../../presentation/widgets/particle_background.dart';
-import '../../presentation/widgets/common_widgets.dart';
 import 'tutorial_screen.dart';
 
-class SettingsScreen extends StatefulWidget {
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
-  bool _musicEnabled = true;
-  bool _sfxEnabled = true;
-  bool _hintsEnabled = true;
-  int _selectedTheme = 0;
-
-  final List<_ThemeOption> _themes = [
-    _ThemeOption('Cyber Neon', AppTheme.neonCyan, AppTheme.neonPurple),
-    _ThemeOption('Golden Knight', AppTheme.gold, Colors.orange),
-    _ThemeOption('Blood Moon', Colors.red, Colors.deepOrange),
-    _ThemeOption('Arctic Ice', Colors.lightBlueAccent, Colors.cyanAccent),
-  ];
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(languageProvider);
+    final settings = ref.watch(userSettingsProvider);
+    final themes = SkinRegistry.themes;
+
     return Scaffold(
       body: ParticleBackground(
         child: SafeArea(
@@ -37,44 +35,76 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   children: [
                     const SizedBox(height: 8),
-                    _buildSectionLabel('AUDIO'),
+
+                    // ── Audio ──────────────────────────────────────────────
+                    _buildSectionLabel(S.get('audio')),
                     const SizedBox(height: 10),
                     _buildToggleTile(
                       icon: Icons.music_note_rounded,
-                      title: 'Background Music',
-                      description: 'Atmospheric game soundtrack',
-                      value: _musicEnabled,
+                      title: S.get('bg_music'),
+                      description: S.get('bg_music_desc'),
+                      value: settings.musicEnabled,
                       color: AppTheme.neonCyan,
-                      onChanged: (v) => setState(() => _musicEnabled = v),
+                      onChanged: (v) {
+                        ref.read(userSettingsProvider.notifier)
+                            .update(settings.copyWith(musicEnabled: v));
+                        AudioService().setMusicEnabled(v);
+                      },
                     ),
                     const SizedBox(height: 10),
                     _buildToggleTile(
                       icon: Icons.volume_up_rounded,
-                      title: 'Sound Effects',
-                      description: 'Piece moves, captures, check alerts',
-                      value: _sfxEnabled,
+                      title: S.get('sfx'),
+                      description: S.get('sfx_desc'),
+                      value: settings.sfxEnabled,
                       color: AppTheme.neonCyan,
-                      onChanged: (v) => setState(() => _sfxEnabled = v),
+                      onChanged: (v) {
+                        ref.read(userSettingsProvider.notifier)
+                            .update(settings.copyWith(sfxEnabled: v));
+                        AudioService().setSfxEnabled(v);
+                      },
                     ),
+
                     const SizedBox(height: 24),
-                    _buildSectionLabel('GAMEPLAY'),
+
+                    // ── Gameplay ───────────────────────────────────────────
+                    _buildSectionLabel(S.get('gameplay')),
                     const SizedBox(height: 10),
                     _buildToggleTile(
                       icon: Icons.lightbulb_rounded,
-                      title: 'Move Hints',
-                      description: 'Highlight best moves to help beginners',
-                      value: _hintsEnabled,
+                      title: S.get('move_hints'),
+                      description: S.get('move_hints_desc'),
+                      value: settings.hintsEnabled,
                       color: AppTheme.neonPurple,
-                      onChanged: (v) => setState(() => _hintsEnabled = v),
+                      onChanged: (v) {
+                        ref.read(userSettingsProvider.notifier)
+                            .update(settings.copyWith(hintsEnabled: v));
+                      },
                     ),
+
                     const SizedBox(height: 24),
-                    _buildSectionLabel('APP THEME'),
+
+                    // ── Language ───────────────────────────────────────────
+                    _buildSectionLabel(S.get('language')),
                     const SizedBox(height: 12),
-                    _buildThemeSelector(),
+                    _buildLanguageSelector(settings.language),
+
                     const SizedBox(height: 24),
-                    _buildSectionLabel('TUTORIAL'),
+
+                    // ── Theme ──────────────────────────────────────────────
+                    _buildSectionLabel(S.get('app_theme')),
+                    const SizedBox(height: 4),
+                    Text(S.get('theme_desc'), style: AppTheme.bodyMedium.copyWith(fontSize: 11)),
+                    const SizedBox(height: 10),
+                    _buildThemeSelector(themes, settings.themeIndex),
+
+                    const SizedBox(height: 24),
+
+                    // ── Tutorial ───────────────────────────────────────────
+                    _buildSectionLabel(S.get('tutorial_section')),
                     const SizedBox(height: 10),
                     _buildTutorialCard(context),
+
                     const SizedBox(height: 32),
                     _buildAppInfo(),
                     const SizedBox(height: 20),
@@ -101,8 +131,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('CONFIGURATION', style: AppTheme.labelSmall),
-              Text('Settings', style: AppTheme.titleLarge),
+              Text(S.get('configuration'), style: AppTheme.labelSmall),
+              Text(S.get('settings'), style: AppTheme.titleLarge),
+            ],
+          ),
+          const Spacer(),
+          // Auto-save indicator
+          Row(
+            children: [
+              Container(
+                width: 6, height: 6,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.greenAccent,
+                  boxShadow: [BoxShadow(color: Colors.greenAccent, blurRadius: 4)],
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(S.get('auto_saved'),
+                  style: AppTheme.labelSmall.copyWith(color: Colors.greenAccent, fontSize: 9)),
             ],
           ),
         ],
@@ -119,13 +166,150 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: Container(
             height: 1,
             decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [AppTheme.glassBorder, Colors.transparent],
-              ),
+              gradient: LinearGradient(colors: [AppTheme.glassBorder, Colors.transparent]),
             ),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildLanguageSelector(String currentLang) {
+    final languages = AppStrings.availableLanguages;
+    return Wrap(
+      spacing: 10,
+      runSpacing: 10,
+      children: languages.map((lang) {
+        final isSelected = currentLang == lang['code'];
+        return GestureDetector(
+          onTap: () {
+            final s = ref.read(userSettingsProvider);
+            ref.read(userSettingsProvider.notifier)
+                .update(s.copyWith(language: lang['code']));
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              color: isSelected ? AppTheme.neonCyan.withValues(alpha: 0.1) : AppTheme.bgCard,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isSelected ? AppTheme.neonCyan : AppTheme.textMuted.withValues(alpha: 0.3),
+                width: isSelected ? 1.5 : 1,
+              ),
+              boxShadow: isSelected
+                  ? [BoxShadow(color: AppTheme.neonCyan.withValues(alpha: 0.25), blurRadius: 10)]
+                  : [],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(lang['flag']!, style: const TextStyle(fontSize: 20)),
+                const SizedBox(width: 8),
+                Text(lang['name']!,
+                    style: AppTheme.bodyMedium.copyWith(
+                        color: isSelected ? AppTheme.neonCyan : AppTheme.textSecondary,
+                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400)),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildThemeSelector(List<ThemeColors> themes, int selectedIndex) {
+    return Column(
+      children: themes.asMap().entries.map((entry) {
+        final i = entry.key;
+        final theme = entry.value;
+        final isSelected = selectedIndex == i;
+        return GestureDetector(
+          onTap: () {
+            final s = ref.read(userSettingsProvider);
+            ref.read(userSettingsProvider.notifier).update(s.copyWith(themeIndex: i));
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              gradient: isSelected
+                  ? LinearGradient(colors: [
+                      theme.primary.withValues(alpha: 0.15),
+                      theme.secondary.withValues(alpha: 0.08),
+                    ])
+                  : null,
+              color: isSelected ? null : AppTheme.bgCard,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: isSelected ? theme.primary : AppTheme.textMuted.withValues(alpha: 0.3),
+                width: isSelected ? 2 : 1,
+              ),
+              boxShadow: isSelected
+                  ? [BoxShadow(color: theme.primary.withValues(alpha: 0.3), blurRadius: 14)]
+                  : [],
+            ),
+            child: Row(
+              children: [
+                // Color swatch
+                Container(
+                  width: 36, height: 36,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [theme.primary, theme.secondary],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    boxShadow: isSelected
+                        ? [BoxShadow(color: theme.primary, blurRadius: 8)]
+                        : [],
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(theme.name,
+                          style: AppTheme.titleMedium.copyWith(
+                              color: isSelected ? theme.primary : AppTheme.textPrimary,
+                              fontSize: 14)),
+                      // Board preview colors
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Container(
+                            width: 12, height: 8,
+                            decoration: BoxDecoration(
+                              color: theme.boardLight,
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                          const SizedBox(width: 2),
+                          Container(
+                            width: 12, height: 8,
+                            decoration: BoxDecoration(
+                              color: theme.boardDark,
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(S.get('board_preview'),
+                              style: AppTheme.bodyMedium.copyWith(fontSize: 10)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                if (isSelected)
+                  Icon(Icons.check_circle_rounded, color: theme.primary, size: 20),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 
@@ -140,10 +324,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: value ? color.withOpacity(0.05) : AppTheme.bgCard,
+        color: value ? color.withValues(alpha: 0.05) : AppTheme.bgCard,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: value ? color.withOpacity(0.4) : AppTheme.textMuted.withOpacity(0.2),
+          color: value ? color.withValues(alpha: 0.4) : AppTheme.textMuted.withValues(alpha: 0.2),
         ),
       ),
       child: Row(
@@ -151,7 +335,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Container(
             width: 44, height: 44,
             decoration: BoxDecoration(
-              color: value ? color.withOpacity(0.15) : AppTheme.textMuted.withOpacity(0.1),
+              color: value ? color.withValues(alpha: 0.15) : AppTheme.textMuted.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: value ? color : AppTheme.textMuted, size: 22),
@@ -170,9 +354,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: color,
-            activeTrackColor: color.withOpacity(0.3),
-            inactiveTrackColor: AppTheme.textMuted.withOpacity(0.2),
+            activeThumbColor: color,
+            activeTrackColor: color.withValues(alpha: 0.3),
+            inactiveTrackColor: AppTheme.textMuted.withValues(alpha: 0.2),
             inactiveThumbColor: AppTheme.textMuted,
           ),
         ],
@@ -180,68 +364,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildThemeSelector() {
-    return Wrap(
-      spacing: 12,
-      runSpacing: 12,
-      children: List.generate(_themes.length, (i) {
-        final theme = _themes[i];
-        final isSelected = _selectedTheme == i;
-        return GestureDetector(
-          onTap: () => setState(() => _selectedTheme = i),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
-              gradient: isSelected
-                  ? LinearGradient(colors: [theme.primary.withOpacity(0.2), theme.secondary.withOpacity(0.1)])
-                  : null,
-              color: isSelected ? null : AppTheme.bgCard,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: isSelected ? theme.primary : AppTheme.textMuted.withOpacity(0.3),
-                width: isSelected ? 2 : 1,
-              ),
-              boxShadow: isSelected ? [BoxShadow(color: theme.primary.withOpacity(0.3), blurRadius: 12)] : [],
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 12, height: 12,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(colors: [theme.primary, theme.secondary]),
-                    boxShadow: isSelected ? [BoxShadow(color: theme.primary, blurRadius: 4)] : [],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(theme.name,
-                    style: AppTheme.bodyMedium.copyWith(
-                        color: isSelected ? theme.primary : AppTheme.textSecondary,
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400)),
-              ],
-            ),
-          ),
-        );
-      }),
-    );
-  }
-
   Widget _buildTutorialCard(BuildContext context) {
     return GestureDetector(
       onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const TutorialScreen()),
-      ),
+          MaterialPageRoute(builder: (_) => const TutorialScreen())),
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF00200A), Color(0xFF001209)],
-          ),
+          gradient: const LinearGradient(colors: [Color(0xFF00200A), Color(0xFF001209)]),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.greenAccent.withOpacity(0.4)),
-          boxShadow: [BoxShadow(color: Colors.greenAccent.withOpacity(0.1), blurRadius: 12)],
+          border: Border.all(color: Colors.greenAccent.withValues(alpha: 0.4)),
+          boxShadow: [BoxShadow(color: Colors.greenAccent.withValues(alpha: 0.1), blurRadius: 12)],
         ),
         child: Row(
           children: [
@@ -251,15 +384,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Chess for Beginners',
+                  Text(S.get('chess_beginners'),
                       style: AppTheme.titleMedium.copyWith(color: Colors.greenAccent)),
                   const SizedBox(height: 4),
-                  Text('Learn piece movement, strategy & Mystery Mode rules.',
+                  Text(S.get('chess_beginners_desc'),
                       style: AppTheme.bodyMedium.copyWith(fontSize: 12)),
                 ],
               ),
             ),
-            Icon(Icons.arrow_forward_ios_rounded, color: Colors.greenAccent.withOpacity(0.6), size: 16),
+            Icon(Icons.arrow_forward_ios_rounded,
+                color: Colors.greenAccent.withValues(alpha: 0.6), size: 16),
           ],
         ),
       ),
@@ -280,11 +414,4 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
   }
-}
-
-class _ThemeOption {
-  final String name;
-  final Color primary;
-  final Color secondary;
-  _ThemeOption(this.name, this.primary, this.secondary);
 }

@@ -32,11 +32,11 @@ class Piece extends Equatable {
       isRevealed: isRevealed,
       apparentType: isRevealed
           ? actualType
-          : _getApparentTypeFromPosition(position, color),
+          : Piece.getApparentTypeFromPosition(position, color),
     );
   }
 
-  static PieceType _getApparentTypeFromPosition(
+  static PieceType getApparentTypeFromPosition(
       Position position, PieceColor color) {
     // In standard chess starting position:
     // Rooks at a1/h1 (white) and a8/h8 (black)

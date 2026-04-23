@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/l10n/language_provider.dart';
+import '../../../domain/models/game_config.dart';
 import '../../presentation/widgets/particle_background.dart';
 import '../../presentation/widgets/common_widgets.dart';
-import 'game_screen.dart';
+import 'game_setup_screen.dart';
 
-enum GameMode { normal, mystery, champion }
-
-class GameModeSelectorScreen extends StatefulWidget {
+class GameModeSelectorScreen extends ConsumerStatefulWidget {
   const GameModeSelectorScreen({super.key});
 
   @override
-  State<GameModeSelectorScreen> createState() => _GameModeSelectorScreenState();
+  ConsumerState<GameModeSelectorScreen> createState() => _GameModeSelectorScreenState();
 }
 
-class _GameModeSelectorScreenState extends State<GameModeSelectorScreen>
+class _GameModeSelectorScreenState extends ConsumerState<GameModeSelectorScreen>
     with SingleTickerProviderStateMixin {
   GameMode _selectedMode = GameMode.normal;
   late AnimationController _entryAnim;
@@ -30,18 +31,24 @@ class _GameModeSelectorScreenState extends State<GameModeSelectorScreen>
     super.dispose();
   }
 
-  void _startGame() {
-    Navigator.of(context).push(
-      PageRouteBuilder(
-        pageBuilder: (_, anim, __) => GameScreen(mode: _selectedMode),
-        transitionsBuilder: (_, anim, __, child) => FadeTransition(opacity: anim, child: child),
-        transitionDuration: const Duration(milliseconds: 400),
+  void _goToSetup() {
+    Navigator.of(context).push(PageRouteBuilder(
+      pageBuilder: (_, anim, __) => GameSetupScreen(mode: _selectedMode),
+      transitionsBuilder: (_, anim, __, child) => FadeTransition(
+        opacity: anim,
+        child: SlideTransition(
+          position: Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero)
+              .animate(CurvedAnimation(parent: anim, curve: Curves.easeOut)),
+          child: child,
+        ),
       ),
-    );
+      transitionDuration: const Duration(milliseconds: 350),
+    ));
   }
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(languageProvider);
     return Scaffold(
       body: ParticleBackground(
         child: SafeArea(
@@ -83,8 +90,8 @@ class _GameModeSelectorScreenState extends State<GameModeSelectorScreen>
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('SELECT MODE', style: AppTheme.labelSmall),
-              Text('Choose Your Battle', style: AppTheme.titleLarge),
+              Text(S.get('select_mode'), style: AppTheme.labelSmall),
+              Text(S.get('choose_battle'), style: AppTheme.titleLarge),
             ],
           ),
         ],
@@ -98,37 +105,37 @@ class _GameModeSelectorScreenState extends State<GameModeSelectorScreen>
       children: [
         _ModeCard(
           mode: GameMode.normal,
-          title: 'NORMAL',
-          subtitle: 'Classic Chess',
-          description: 'Standard rules. Challenge AI from Beginner to Grandmaster level.',
+          title: S.get('mode_normal'),
+          subtitle: S.get('normal_subtitle'),
+          description: S.get('normal_desc'),
           icon: '♟',
           color: AppTheme.neonCyan,
-          features: ['Standard Chess Rules', 'AI Difficulty: Beginner → Grandmaster', 'Move Hints Available'],
+          features: [S.get('one_player'), S.get('two_players'), S.get('bot_difficulty')],
           isSelected: _selectedMode == GameMode.normal,
           onTap: () => setState(() => _selectedMode = GameMode.normal),
         ),
         const SizedBox(height: 14),
         _ModeCard(
           mode: GameMode.mystery,
-          title: 'MYSTERY',
-          subtitle: 'Fog of War',
-          description: 'Hidden squares, random events & mystery pieces. Every move is a surprise.',
+          title: S.get('mode_mystery'),
+          subtitle: S.get('mystery_subtitle'),
+          description: S.get('mystery_desc'),
           icon: '🌫',
           color: AppTheme.neonPurple,
-          features: ['Fog of War', 'Random Events & Traps', 'Mystery Pieces with Hidden Power'],
+          features: [S.get('hidden_identity'), S.get('fog_of_war'), S.get('double_blind')],
           isSelected: _selectedMode == GameMode.mystery,
           onTap: () => setState(() => _selectedMode = GameMode.mystery),
-          badge: 'FEATURED',
+          badge: S.get('featured'),
         ),
         const SizedBox(height: 14),
         _ModeCard(
           mode: GameMode.champion,
-          title: 'CHAMPION',
-          subtitle: 'Boss Battle',
-          description: 'Face specialized AI Champions with unique strategies. Climb the ladder.',
+          title: S.get('mode_champion'),
+          subtitle: S.get('champion_subtitle'),
+          description: S.get('champion_desc'),
           icon: '♛',
           color: AppTheme.gold,
-          features: ['Boss AI Champions', 'Ranked Ladder', 'Exclusive Rewards'],
+          features: [S.get('champion_normal'), S.get('champion_mystery')],
           isSelected: _selectedMode == GameMode.champion,
           onTap: () => setState(() => _selectedMode = GameMode.champion),
         ),
@@ -146,12 +153,12 @@ class _GameModeSelectorScreenState extends State<GameModeSelectorScreen>
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
       child: NeonButton(
-        label: 'BEGIN MATCH',
-        icon: Icons.play_arrow_rounded,
+        label: S.get('begin_match'),
+        icon: Icons.arrow_forward_rounded,
         color: colors[_selectedMode]!,
         isWide: true,
         height: 60,
-        onTap: _startGame,
+        onTap: _goToSetup,
       ),
     );
   }

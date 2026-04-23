@@ -39,6 +39,15 @@ dependencies:
   # Google Fonts for modern typography
   google_fonts: ^6.2.1
 
+  # File system path
+  path_provider: ^2.1.2
+
+  # Crypto for key derivation
+  crypto: ^3.0.3
+
+  # Audio playback for BGM and SFX
+  audioplayers: ^6.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -54,3 +63,7 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  assets:
+    - assets/audio/bgm/
+    - assets/audio/sfx/

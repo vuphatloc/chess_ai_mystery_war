@@ -10,11 +10,15 @@ class Board extends Equatable {
   final List<List<Piece?>> squares; // 8x8 grid
   final PieceColor currentTurn;
   final List<Move> moveHistory;
+  final List<Piece> capturedWhitePieces;
+  final List<Piece> capturedBlackPieces;
 
   const Board({
     required this.squares,
     this.currentTurn = PieceColor.white,
     this.moveHistory = const [],
+    this.capturedWhitePieces = const [],
+    this.capturedBlackPieces = const [],
   });
 
   factory Board.initial() {
@@ -140,11 +144,15 @@ class Board extends Equatable {
     List<List<Piece?>>? squares,
     PieceColor? currentTurn,
     List<Move>? moveHistory,
+    List<Piece>? capturedWhitePieces,
+    List<Piece>? capturedBlackPieces,
   }) {
     return Board(
       squares: squares ?? this.squares,
       currentTurn: currentTurn ?? this.currentTurn,
       moveHistory: moveHistory ?? this.moveHistory,
+      capturedWhitePieces: capturedWhitePieces ?? this.capturedWhitePieces,
+      capturedBlackPieces: capturedBlackPieces ?? this.capturedBlackPieces,
     );
   }
 
@@ -207,7 +215,7 @@ class Board extends Equatable {
   }
 
   @override
-  List<Object?> get props => [squares, currentTurn, moveHistory];
+  List<Object?> get props => [squares, currentTurn, moveHistory, capturedWhitePieces, capturedBlackPieces];
 
   @override
   String toString() {
