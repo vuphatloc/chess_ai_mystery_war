@@ -37,6 +37,8 @@ class _StoreScreenState extends ConsumerState<StoreScreen>
   Widget build(BuildContext context) {
     ref.watch(languageProvider);
     final gold = ref.watch(goldProvider);
+    final settings = ref.watch(userSettingsProvider);
+    final activeTheme = SkinRegistry.getTheme(settings.themeIndex);
 
     return Scaffold(
       body: ParticleBackground(
@@ -45,15 +47,15 @@ class _StoreScreenState extends ConsumerState<StoreScreen>
             children: [
               _buildHeader(context, gold),
               const SizedBox(height: 4),
-              _buildTabBar(),
+              _buildTabBar(activeTheme),
               const SizedBox(height: 4),
               Expanded(
                 child: TabBarView(
                   controller: _tabController,
                   children: [
-                    _buildPieceSkins(),
-                    _buildBoardSkins(),
-                    _buildEarnGold(),
+                    _buildPieceSkins(activeTheme),
+                    _buildBoardSkins(activeTheme),
+                    _buildEarnGold(activeTheme),
                   ],
                 ),
               ),
@@ -89,7 +91,7 @@ class _StoreScreenState extends ConsumerState<StoreScreen>
   }
 
   // ── Custom Tab Bar (full background when selected) ─────────────────────
-  Widget _buildTabBar() {
+  Widget _buildTabBar(ThemeColors theme) {
     final tabs = [S.get('pieces_tab'), S.get('boards_tab'), S.get('earn_tab')];
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -114,10 +116,16 @@ class _StoreScreenState extends ConsumerState<StoreScreen>
                 duration: const Duration(milliseconds: 200),
                 margin: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  gradient: isSelected ? AppTheme.cyanPurpleGradient : null,
+                  gradient: isSelected
+                      ? LinearGradient(
+                          colors: [theme.primary, theme.secondary],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        )
+                      : null,
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: isSelected
-                      ? [BoxShadow(color: AppTheme.neonCyan.withValues(alpha: 0.3), blurRadius: 8)]
+                      ? [BoxShadow(color: theme.primary.withValues(alpha: 0.3), blurRadius: 8)]
                       : [],
                 ),
                 child: Center(
@@ -140,7 +148,7 @@ class _StoreScreenState extends ConsumerState<StoreScreen>
 
   // ── Piece Skins ────────────────────────────────────────────────────────
 
-  Widget _buildPieceSkins() {
+  Widget _buildPieceSkins(ThemeColors theme) {
     final owned = ref.watch(ownedSkinsProvider);
     final activePieceSkin = ref.watch(activePieceSkinProvider);
     final gold = ref.watch(goldProvider);
@@ -181,7 +189,7 @@ class _StoreScreenState extends ConsumerState<StoreScreen>
 
   // ── Board Skins ────────────────────────────────────────────────────────
 
-  Widget _buildBoardSkins() {
+  Widget _buildBoardSkins(ThemeColors theme) {
     final owned = ref.watch(ownedSkinsProvider);
     final activeBoardSkin = ref.watch(activeBoardSkinProvider);
     final gold = ref.watch(goldProvider);
@@ -208,7 +216,7 @@ class _StoreScreenState extends ConsumerState<StoreScreen>
           canAfford: canAfford,
           isFree: skin.price == 0,
           preview: _BoardSkinPreview(skin: skin),
-          glowColor: skin.highlightTint ?? AppTheme.neonCyan,
+          glowColor: skin.highlightTint ?? theme.primary,
           onBuy: () => _confirmPurchase(context, skin.id, skin.name, skin.price, isPiece: false),
           onEquip: () {
             final settings = ref.read(userSettingsProvider);
@@ -222,7 +230,7 @@ class _StoreScreenState extends ConsumerState<StoreScreen>
 
   // ── Earn Gold ──────────────────────────────────────────────────────────
 
-  Widget _buildEarnGold() {
+  Widget _buildEarnGold(ThemeColors theme) {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
@@ -258,7 +266,7 @@ class _StoreScreenState extends ConsumerState<StoreScreen>
           title: S.get('daily_login'),
           description: S.get('daily_login_desc'),
           reward: '+25 ${S.get("gold")}',
-          color: AppTheme.neonPurple,
+          color: theme.secondary,
         ),
       ],
     );

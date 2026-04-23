@@ -125,6 +125,19 @@ class BotService {
     final pool = revealedMoves.isNotEmpty ? revealedMoves : moves;
     return pool[_random.nextInt(pool.length)];
   }
+
+  /// Returns the best move hint for [color] at depth 3 (used by the Hint feature).
+  /// Runs on a background isolate to keep the UI responsive.
+  static Future<BotMove?> computeHint(Board board, PieceColor color) async {
+    final allMoves = _gatherMoves(board, color);
+    if (allMoves.isEmpty) return null;
+    final lightBoard = board.copyWith(
+      moveHistory: const [],
+      capturedWhitePieces: const [],
+      capturedBlackPieces: const [],
+    );
+    return compute(_runMinimaxRoot, _ComputeArgs(lightBoard, color, 3, allMoves));
+  }
 }
 
 class _ComputeArgs {

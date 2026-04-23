@@ -24,48 +24,48 @@ class Board extends Equatable {
   factory Board.initial() {
     final squares = List.generate(8, (_) => List<Piece?>.filled(8, null));
 
-    // Create standard chess pieces (all hidden except kings)
+    // Create standard chess pieces (all revealed from the start)
     final whitePieces = [
       Piece.create(
           actualType: PieceType.rook,
           color: PieceColor.white,
           position: Position(0, 0),
-          isRevealed: false),
+          isRevealed: true),
       Piece.create(
           actualType: PieceType.knight,
           color: PieceColor.white,
           position: Position(1, 0),
-          isRevealed: false),
+          isRevealed: true),
       Piece.create(
           actualType: PieceType.bishop,
           color: PieceColor.white,
           position: Position(2, 0),
-          isRevealed: false),
+          isRevealed: true),
       Piece.create(
           actualType: PieceType.queen,
           color: PieceColor.white,
           position: Position(3, 0),
-          isRevealed: false),
+          isRevealed: true),
       Piece.create(
           actualType: PieceType.king,
           color: PieceColor.white,
           position: Position(4, 0),
-          isRevealed: true), // King revealed
+          isRevealed: true),
       Piece.create(
           actualType: PieceType.bishop,
           color: PieceColor.white,
           position: Position(5, 0),
-          isRevealed: false),
+          isRevealed: true),
       Piece.create(
           actualType: PieceType.knight,
           color: PieceColor.white,
           position: Position(6, 0),
-          isRevealed: false),
+          isRevealed: true),
       Piece.create(
           actualType: PieceType.rook,
           color: PieceColor.white,
           position: Position(7, 0),
-          isRevealed: false),
+          isRevealed: true),
     ];
 
     final blackPieces = [
@@ -73,42 +73,42 @@ class Board extends Equatable {
           actualType: PieceType.rook,
           color: PieceColor.black,
           position: Position(0, 7),
-          isRevealed: false),
+          isRevealed: true),
       Piece.create(
           actualType: PieceType.knight,
           color: PieceColor.black,
           position: Position(1, 7),
-          isRevealed: false),
+          isRevealed: true),
       Piece.create(
           actualType: PieceType.bishop,
           color: PieceColor.black,
           position: Position(2, 7),
-          isRevealed: false),
+          isRevealed: true),
       Piece.create(
           actualType: PieceType.queen,
           color: PieceColor.black,
           position: Position(3, 7),
-          isRevealed: false),
+          isRevealed: true),
       Piece.create(
           actualType: PieceType.king,
           color: PieceColor.black,
           position: Position(4, 7),
-          isRevealed: true), // King revealed
+          isRevealed: true),
       Piece.create(
           actualType: PieceType.bishop,
           color: PieceColor.black,
           position: Position(5, 7),
-          isRevealed: false),
+          isRevealed: true),
       Piece.create(
           actualType: PieceType.knight,
           color: PieceColor.black,
           position: Position(6, 7),
-          isRevealed: false),
+          isRevealed: true),
       Piece.create(
           actualType: PieceType.rook,
           color: PieceColor.black,
           position: Position(7, 7),
-          isRevealed: false),
+          isRevealed: true),
     ];
 
     // Add pawns
@@ -117,13 +117,13 @@ class Board extends Equatable {
         actualType: PieceType.pawn,
         color: PieceColor.white,
         position: Position(file, 1),
-        isRevealed: false,
+        isRevealed: true,
       ));
       blackPieces.add(Piece.create(
         actualType: PieceType.pawn,
         color: PieceColor.black,
         position: Position(file, 6),
-        isRevealed: false,
+        isRevealed: true,
       ));
     }
 

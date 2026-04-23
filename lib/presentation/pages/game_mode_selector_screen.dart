@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/l10n/language_provider.dart';
 import '../../../domain/models/game_config.dart';
+import '../../../domain/providers/user_provider.dart';
+import '../../../domain/models/skin_registry.dart';
 import '../../presentation/widgets/particle_background.dart';
 import '../../presentation/widgets/common_widgets.dart';
 import 'game_setup_screen.dart';
@@ -49,6 +51,9 @@ class _GameModeSelectorScreenState extends ConsumerState<GameModeSelectorScreen>
   @override
   Widget build(BuildContext context) {
     ref.watch(languageProvider);
+    final settings = ref.watch(userSettingsProvider);
+    final activeTheme = SkinRegistry.getTheme(settings.themeIndex);
+
     return Scaffold(
       body: ParticleBackground(
         child: SafeArea(
@@ -66,10 +71,10 @@ class _GameModeSelectorScreenState extends ConsumerState<GameModeSelectorScreen>
                       child: child,
                     ),
                   ),
-                  child: _buildModeList(),
+                  child: _buildModeList(activeTheme),
                 ),
               ),
-              _buildStartButton(),
+              _buildStartButton(activeTheme),
             ],
           ),
         ),
@@ -99,7 +104,7 @@ class _GameModeSelectorScreenState extends ConsumerState<GameModeSelectorScreen>
     );
   }
 
-  Widget _buildModeList() {
+  Widget _buildModeList(ThemeColors theme) {
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       children: [
@@ -109,7 +114,7 @@ class _GameModeSelectorScreenState extends ConsumerState<GameModeSelectorScreen>
           subtitle: S.get('normal_subtitle'),
           description: S.get('normal_desc'),
           icon: '♟',
-          color: AppTheme.neonCyan,
+          color: theme.primary,
           features: [S.get('one_player'), S.get('two_players'), S.get('bot_difficulty')],
           isSelected: _selectedMode == GameMode.normal,
           onTap: () => setState(() => _selectedMode = GameMode.normal),
@@ -121,7 +126,7 @@ class _GameModeSelectorScreenState extends ConsumerState<GameModeSelectorScreen>
           subtitle: S.get('mystery_subtitle'),
           description: S.get('mystery_desc'),
           icon: '🌫',
-          color: AppTheme.neonPurple,
+          color: theme.secondary,
           features: [S.get('hidden_identity'), S.get('fog_of_war'), S.get('double_blind')],
           isSelected: _selectedMode == GameMode.mystery,
           onTap: () => setState(() => _selectedMode = GameMode.mystery),
@@ -144,10 +149,10 @@ class _GameModeSelectorScreenState extends ConsumerState<GameModeSelectorScreen>
     );
   }
 
-  Widget _buildStartButton() {
+  Widget _buildStartButton(ThemeColors theme) {
     final colors = {
-      GameMode.normal: AppTheme.neonCyan,
-      GameMode.mystery: AppTheme.neonPurple,
+      GameMode.normal: theme.primary,
+      GameMode.mystery: theme.secondary,
       GameMode.champion: AppTheme.gold,
     };
     return Padding(

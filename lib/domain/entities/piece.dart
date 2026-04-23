@@ -97,6 +97,7 @@ class Piece extends Equatable {
     return copyWith(
       position: newPosition,
       isRevealed: true, // Piece is revealed after moving
+      apparentType: actualType, // sync so currentType is unambiguous after reveal
     );
   }
 

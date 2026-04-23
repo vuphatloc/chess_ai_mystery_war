@@ -178,6 +178,27 @@ class AppStrings {
       'no_items': 'No items yet. Visit the Store!',
       'piece_skins': 'PIECE SKINS',
       'board_skins': 'BOARD SKINS',
+
+      // Player side selection
+      'choose_side': 'CHOOSE YOUR SIDE',
+      'play_white': 'Play White',
+      'play_black': 'Play Black',
+      'side_white_desc': 'Move first',
+      'side_black_desc': 'Move second',
+
+      // Turn indicator
+      'your_turn': 'YOUR TURN',
+      'bot_turn': "BOT'S TURN",
+      'you': 'YOU',
+      'bot': 'BOT',
+
+      // Hint
+      'hint': 'Hint',
+      'hint_title': 'Standard Hint',
+      'hint_cost_label': 'Cost: 10 Gold',
+      'use_hint': 'Use Hint',
+      'hint_computing': 'Finding best move...',
+      'check_warning': 'Your King is in CHECK!',
     },
 
     'vi': {
@@ -348,6 +369,27 @@ class AppStrings {
       'no_items': 'Chưa có vật phẩm. Ghé Cửa Hàng nhé!',
       'piece_skins': 'SKIN QUÂN CỜ',
       'board_skins': 'SKIN BÀN CỜ',
+
+      // Player side selection
+      'choose_side': 'CHỌN MÀU QUÂN',
+      'play_white': 'Đi Quân Trắng',
+      'play_black': 'Đi Quân Đen',
+      'side_white_desc': 'Đi trước',
+      'side_black_desc': 'Đi sau',
+
+      // Turn indicator
+      'your_turn': 'LƯỢT CỦA BẠN',
+      'bot_turn': 'LƯỢT BOT',
+      'you': 'BẠN',
+      'bot': 'BOT',
+
+      // Hint
+      'hint': 'Gợi Ý',
+      'hint_title': 'Gợi Ý Chuẩn',
+      'hint_cost_label': 'Giá: 10 Vàng',
+      'use_hint': 'Dùng Gợi Ý',
+      'hint_computing': 'Đang tìm nước hay...',
+      'check_warning': 'Vua của bạn đang bị Chiếu!',
     },
   };
 

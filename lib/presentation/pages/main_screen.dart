@@ -5,6 +5,7 @@ import '../../../core/l10n/language_provider.dart';
 import '../../../domain/providers/user_provider.dart';
 import '../widgets/particle_background.dart';
 import '../widgets/common_widgets.dart';
+import '../../domain/models/skin_registry.dart';
 import 'game_mode_selector_screen.dart';
 import 'store_screen.dart';
 import 'settings_screen.dart';
@@ -70,13 +71,14 @@ class _MainScreenState extends ConsumerState<MainScreen> with TickerProviderStat
     ref.watch(languageProvider);
     final gold = ref.watch(goldProvider);
     final activePieceSkin = ref.watch(activePieceSkinProvider);
+    final theme = SkinRegistry.getTheme(ref.watch(activeThemeIndexProvider));
 
     return Scaffold(
       body: ParticleBackground(
         child: SafeArea(
           child: Column(
             children: [
-              _buildTopBar(gold),
+              _buildTopBar(gold, theme),
               Expanded(
                 child: Center(
                   child: SingleChildScrollView(
@@ -85,9 +87,9 @@ class _MainScreenState extends ConsumerState<MainScreen> with TickerProviderStat
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const SizedBox(height: 16),
-                        _buildLogo(),
+                        _buildLogo(theme),
                         const SizedBox(height: 40),
-                        _buildMenuButtons(activePieceSkin),
+                        _buildMenuButtons(activePieceSkin, theme),
                         const SizedBox(height: 28),
                         _buildVersion(),
                       ],
@@ -102,7 +104,7 @@ class _MainScreenState extends ConsumerState<MainScreen> with TickerProviderStat
     );
   }
 
-  Widget _buildTopBar(int gold) {
+  Widget _buildTopBar(int gold, ThemeColors theme) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       child: Row(
@@ -112,9 +114,9 @@ class _MainScreenState extends ConsumerState<MainScreen> with TickerProviderStat
             children: [
               Container(
                 width: 8, height: 8,
-                decoration: const BoxDecoration(
-                  color: AppTheme.neonCyan, shape: BoxShape.circle,
-                  boxShadow: [BoxShadow(color: AppTheme.neonCyanGlow, blurRadius: 6)],
+                decoration: BoxDecoration(
+                  color: theme.primary, shape: BoxShape.circle,
+                  boxShadow: [BoxShadow(color: theme.primary.withValues(alpha: 0.6), blurRadius: 6)],
                 ),
               ),
               const SizedBox(width: 8),
@@ -127,7 +129,7 @@ class _MainScreenState extends ConsumerState<MainScreen> with TickerProviderStat
     );
   }
 
-  Widget _buildLogo() {
+  Widget _buildLogo(ThemeColors theme) {
     return FadeTransition(
       opacity: _logoFade,
       child: ScaleTransition(
@@ -141,21 +143,21 @@ class _MainScreenState extends ConsumerState<MainScreen> with TickerProviderStat
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: RadialGradient(colors: [
-                    AppTheme.neonCyan.withValues(alpha: 0.2),
-                    AppTheme.neonPurple.withValues(alpha: 0.1),
+                    theme.primary.withValues(alpha: 0.2),
+                    theme.secondary.withValues(alpha: 0.1),
                     Colors.transparent,
                   ]),
                   boxShadow: [
-                    BoxShadow(color: AppTheme.neonCyan.withValues(alpha: 0.5), blurRadius: 40, spreadRadius: 5),
-                    BoxShadow(color: AppTheme.neonPurple.withValues(alpha: 0.3), blurRadius: 60),
+                    BoxShadow(color: theme.primary.withValues(alpha: 0.5), blurRadius: 40, spreadRadius: 5),
+                    BoxShadow(color: theme.secondary.withValues(alpha: 0.3), blurRadius: 60),
                   ],
                 ),
-                child: const Center(
+                child: Center(
                   child: Text('♞', style: TextStyle(
                     fontSize: 72, color: AppTheme.textPrimary,
                     shadows: [
-                      Shadow(color: AppTheme.neonCyan, blurRadius: 20),
-                      Shadow(color: AppTheme.neonPurple, blurRadius: 40),
+                      Shadow(color: theme.primary, blurRadius: 20),
+                      Shadow(color: theme.secondary, blurRadius: 40),
                     ],
                   )),
                 ),
@@ -163,7 +165,11 @@ class _MainScreenState extends ConsumerState<MainScreen> with TickerProviderStat
             ),
             const SizedBox(height: 24),
             ShaderMask(
-              shaderCallback: (bounds) => AppTheme.cyanPurpleGradient.createShader(bounds),
+              shaderCallback: (bounds) => LinearGradient(
+                colors: [theme.primary, theme.secondary],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ).createShader(bounds),
               child: Text('CHESS AI', style: AppTheme.displayLarge.copyWith(color: Colors.white)),
             ),
             const SizedBox(height: 4),
@@ -173,11 +179,11 @@ class _MainScreenState extends ConsumerState<MainScreen> with TickerProviderStat
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _dividerLine(AppTheme.neonCyan),
+                _dividerLine(theme.primary),
                 const SizedBox(width: 12),
                 const Text('✦', style: TextStyle(color: AppTheme.gold, fontSize: 12)),
                 const SizedBox(width: 12),
-                _dividerLine(AppTheme.neonPurple),
+                _dividerLine(theme.secondary),
               ],
             ),
           ],
@@ -196,7 +202,7 @@ class _MainScreenState extends ConsumerState<MainScreen> with TickerProviderStat
     );
   }
 
-  Widget _buildMenuButtons(String activePieceSkin) {
+  Widget _buildMenuButtons(String activePieceSkin, ThemeColors theme) {
     return Column(
       children: [
         // START GAME — full width
@@ -205,8 +211,8 @@ class _MainScreenState extends ConsumerState<MainScreen> with TickerProviderStat
           description: S.get('start_desc'),
           icon: Icons.play_arrow_rounded,
           gradient: const LinearGradient(colors: [Color(0xFF003D40), Color(0xFF001A1C)]),
-          borderColor: AppTheme.neonCyan,
-          glowColor: AppTheme.neonCyan,
+          borderColor: theme.primary,
+          glowColor: theme.primary,
           onTap: () => _navigate(const GameModeSelectorScreen()),
         ),
         const SizedBox(height: 14),
@@ -231,14 +237,14 @@ class _MainScreenState extends ConsumerState<MainScreen> with TickerProviderStat
             const SizedBox(width: 14),
             Expanded(
               child: _MainMenuCard(
-                label: S.get('config'),
-                description: S.get('config_desc'),
+                label: 'Settings',
+                description: 'Audio • Hints • Theme',
                 icon: Icons.tune_rounded,
                 gradient: const LinearGradient(
                     colors: [Color(0xFF1E003D), Color(0xFF0D001A)],
                     begin: Alignment.topLeft, end: Alignment.bottomRight),
-                borderColor: AppTheme.neonPurple,
-                glowColor: AppTheme.neonPurple,
+                borderColor: theme.secondary,
+                glowColor: theme.secondary,
                 onTap: () => _navigate(const SettingsScreen()),
                 compact: true,
               ),
@@ -254,15 +260,15 @@ class _MainScreenState extends ConsumerState<MainScreen> with TickerProviderStat
           icon: Icons.style_rounded,
           gradient: const LinearGradient(
               colors: [Color(0xFF001A30), Color(0xFF000D18)]),
-          borderColor: AppTheme.neonCyan,
-          glowColor: AppTheme.neonCyan,
+          borderColor: theme.primary,
+          glowColor: theme.primary,
           onTap: () => _navigate(const InventoryScreen()),
           trailing: Text(
             '♘',
             style: TextStyle(
               fontSize: 28,
               shadows: [
-                Shadow(color: AppTheme.neonCyan.withValues(alpha: 0.7), blurRadius: 12),
+                Shadow(color: theme.primary.withValues(alpha: 0.7), blurRadius: 12),
               ],
             ),
           ),

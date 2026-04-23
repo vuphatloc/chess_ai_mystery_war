@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/l10n/language_provider.dart';
 import '../../../domain/models/game_config.dart';
+import '../../../domain/value_objects/piece_color.dart';
+import '../../../domain/models/skin_registry.dart';
+import '../../../domain/providers/user_provider.dart';
 import '../widgets/particle_background.dart';
 import '../widgets/common_widgets.dart';
 import 'game_screen.dart';
@@ -18,6 +21,7 @@ class GameSetupScreen extends ConsumerStatefulWidget {
 class _GameSetupScreenState extends ConsumerState<GameSetupScreen> {
   // -- State --
   PlayerCount _playerCount = PlayerCount.one;
+  PieceColor _playerColor = PieceColor.white;
   BotDifficulty _botDifficulty = BotDifficulty.intermediate;
   TimeControl _timeControl = TimeControl.unlimited;
   MysterySubType _mysterySubType = MysterySubType.hiddenIdentity;
@@ -27,9 +31,10 @@ class _GameSetupScreenState extends ConsumerState<GameSetupScreen> {
   final bool _hasSavedCampaign = false;
 
   Color get _modeColor {
+    final theme = SkinRegistry.getTheme(ref.watch(userSettingsProvider).themeIndex);
     switch (widget.mode) {
-      case GameMode.normal: return AppTheme.neonCyan;
-      case GameMode.mystery: return AppTheme.neonPurple;
+      case GameMode.normal: return theme.primary;
+      case GameMode.mystery: return theme.secondary;
       case GameMode.champion: return AppTheme.gold;
     }
   }
@@ -43,6 +48,7 @@ class _GameSetupScreenState extends ConsumerState<GameSetupScreen> {
       mysterySubType: widget.mode == GameMode.mystery ? _mysterySubType : null,
       championSubType: widget.mode == GameMode.champion ? _championSubType : null,
       championSession: widget.mode == GameMode.champion ? _championSession : null,
+      playerColor: _playerCount == PlayerCount.one ? _playerColor : PieceColor.white,
     );
     Navigator.of(context).push(PageRouteBuilder(
       pageBuilder: (_, anim, __) => GameScreen(config: config),
@@ -73,6 +79,8 @@ class _GameSetupScreenState extends ConsumerState<GameSetupScreen> {
                     ] else ...[
                       _buildSection(S.get('players'), _buildPlayerCount()),
                       if (_playerCount == PlayerCount.one) ...[
+                        const SizedBox(height: 20),
+                        _buildSection(S.get('choose_side'), _buildPlayerColor()),
                         const SizedBox(height: 20),
                         _buildSection(S.get('bot_difficulty'), _buildBotDifficulty()),
                       ],
@@ -128,6 +136,121 @@ class _GameSetupScreenState extends ConsumerState<GameSetupScreen> {
     );
   }
 
+  // ── Player Color ──────────────────────────────────────────────────────────
+
+  Widget _buildPlayerColor() {
+    return Row(
+      children: [
+        Expanded(
+          child: GestureDetector(
+            onTap: () => setState(() => _playerColor = PieceColor.white),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              decoration: BoxDecoration(
+                color: _playerColor == PieceColor.white
+                    ? _modeColor.withValues(alpha: 0.15)
+                    : AppTheme.bgCard,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: _playerColor == PieceColor.white
+                      ? _modeColor
+                      : AppTheme.textMuted.withValues(alpha: 0.3),
+                  width: _playerColor == PieceColor.white ? 2 : 1,
+                ),
+                boxShadow: _playerColor == PieceColor.white
+                    ? [BoxShadow(color: _modeColor.withValues(alpha: 0.3), blurRadius: 12)]
+                    : [],
+              ),
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                // White piece icon
+                Container(
+                  width: 44, height: 44,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: const Color(0xFF2A2A36),
+                    border: Border.all(color: _modeColor.withValues(alpha: 0.5), width: 1.5),
+                  ),
+                  child: Center(
+                    child: Stack(alignment: Alignment.center, children: [
+                      Container(width: 36, height: 36, decoration: const BoxDecoration(
+                        shape: BoxShape.circle, color: Color(0xFF00E5FF))),
+                      Container(width: 30, height: 30, decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: RadialGradient(colors: [Color(0xFFFEFCF5), Color(0xFFD8CEB4)]))),
+                      const Text('♚', style: TextStyle(fontSize: 16, color: Color(0xFF1A1808), fontWeight: FontWeight.w900)),
+                    ]),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(S.get('play_white'),
+                    style: AppTheme.labelSmall.copyWith(
+                        color: _playerColor == PieceColor.white ? _modeColor : AppTheme.textSecondary,
+                        fontWeight: FontWeight.w700, fontSize: 11)),
+                const SizedBox(height: 2),
+                Text(S.get('side_white_desc'),
+                    style: AppTheme.labelSmall.copyWith(color: AppTheme.textMuted, fontSize: 9)),
+              ]),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: GestureDetector(
+            onTap: () => setState(() => _playerColor = PieceColor.black),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              decoration: BoxDecoration(
+                color: _playerColor == PieceColor.black
+                    ? _modeColor.withValues(alpha: 0.15)
+                    : AppTheme.bgCard,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: _playerColor == PieceColor.black
+                      ? _modeColor
+                      : AppTheme.textMuted.withValues(alpha: 0.3),
+                  width: _playerColor == PieceColor.black ? 2 : 1,
+                ),
+                boxShadow: _playerColor == PieceColor.black
+                    ? [BoxShadow(color: _modeColor.withValues(alpha: 0.3), blurRadius: 12)]
+                    : [],
+              ),
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                Container(
+                  width: 44, height: 44,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: const Color(0xFF2A2A36),
+                    border: Border.all(color: _modeColor.withValues(alpha: 0.5), width: 1.5),
+                  ),
+                  child: Center(
+                    child: Stack(alignment: Alignment.center, children: [
+                      Container(width: 36, height: 36, decoration: const BoxDecoration(
+                        shape: BoxShape.circle, color: Color(0xFF00E5FF))),
+                      Container(width: 30, height: 30, decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: RadialGradient(colors: [Color(0xFF2A2A32), Color(0xFF0C0C10)]))),
+                      const Text('♚', style: TextStyle(fontSize: 16, color: Color(0xFFF5F3EC), fontWeight: FontWeight.w900)),
+                    ]),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(S.get('play_black'),
+                    style: AppTheme.labelSmall.copyWith(
+                        color: _playerColor == PieceColor.black ? _modeColor : AppTheme.textSecondary,
+                        fontWeight: FontWeight.w700, fontSize: 11)),
+                const SizedBox(height: 2),
+                Text(S.get('side_black_desc'),
+                    style: AppTheme.labelSmall.copyWith(color: AppTheme.textMuted, fontSize: 9)),
+              ]),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   // ── Player Count ──────────────────────────────────────────────────────────
 
   Widget _buildPlayerCount() {
@@ -171,14 +294,15 @@ class _GameSetupScreenState extends ConsumerState<GameSetupScreen> {
       BotDifficulty.master: 'diff_master',
       BotDifficulty.grandmaster: 'diff_grandmaster',
     };
+    final theme = SkinRegistry.getTheme(ref.watch(userSettingsProvider).themeIndex);
     final colors = [
       Colors.green,
       Colors.lightGreen,
-      AppTheme.neonCyan,
+      theme.primary,
       Colors.orange,
       Colors.deepOrange,
       Colors.red,
-      AppTheme.neonPurple,
+      theme.secondary,
     ];
 
     return Column(
@@ -300,7 +424,7 @@ class _GameSetupScreenState extends ConsumerState<GameSetupScreen> {
         icon: '🂠',
         titleKey: 'hidden_identity',
         descKey: 'hidden_identity_desc',
-        color: AppTheme.neonPurple,
+        color: _modeColor,
       ),
       _MysteryTypeInfo(
         type: MysterySubType.fogOfWar,
@@ -479,7 +603,7 @@ class _GameSetupScreenState extends ConsumerState<GameSetupScreen> {
             icon: Icons.auto_awesome_rounded,
             label: S.get('champion_mystery'),
             sublabel: S.get('champion_mystery_desc'),
-            color: AppTheme.neonPurple,
+            color: SkinRegistry.getTheme(ref.watch(userSettingsProvider).themeIndex).secondary,
             isSelected: _championSubType == ChampionSubType.mystery,
             onTap: () => setState(() => _championSubType = ChampionSubType.mystery),
           ),

@@ -24,6 +24,8 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen>
     final owned = ref.watch(ownedSkinsProvider);
     final activePiece = ref.watch(activePieceSkinProvider);
     final activeBoard = ref.watch(activeBoardSkinProvider);
+    final settings = ref.watch(userSettingsProvider);
+    final activeTheme = SkinRegistry.getTheme(settings.themeIndex);
 
     final ownedPieces = SkinRegistry.pieceSkins.where((s) => owned.contains(s.id)).toList();
     final ownedBoards = SkinRegistry.boardSkins.where((s) => owned.contains(s.id)).toList();
@@ -35,12 +37,12 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen>
             children: [
               _buildHeader(context),
               const SizedBox(height: 4),
-              _buildTabBar(),
+              _buildTabBar(activeTheme),
               const SizedBox(height: 8),
               Expanded(
                 child: _tab == 0
-                    ? _buildPieceGrid(ownedPieces, activePiece)
-                    : _buildBoardGrid(ownedBoards, activeBoard),
+                    ? _buildPieceGrid(ownedPieces, activePiece, activeTheme)
+                    : _buildBoardGrid(ownedBoards, activeBoard, activeTheme),
               ),
             ],
           ),
@@ -71,7 +73,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen>
     );
   }
 
-  Widget _buildTabBar() {
+  Widget _buildTabBar(ThemeColors theme) {
     final tabs = [S.get('piece_skins'), S.get('board_skins')];
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -92,7 +94,13 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen>
                 duration: const Duration(milliseconds: 200),
                 margin: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  gradient: isSelected ? AppTheme.cyanPurpleGradient : null,
+                  gradient: isSelected
+                      ? LinearGradient(
+                          colors: [theme.primary, theme.secondary],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        )
+                      : null,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Center(
@@ -113,7 +121,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen>
     );
   }
 
-  Widget _buildPieceGrid(List<PieceSkinDef> skins, String activeSkinId) {
+  Widget _buildPieceGrid(List<PieceSkinDef> skins, String activeSkinId, ThemeColors theme) {
     if (skins.isEmpty) return _buildEmpty();
     return GridView.builder(
       padding: const EdgeInsets.all(20),
@@ -128,6 +136,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen>
           name: skin.name,
           isActive: isActive,
           glowColor: skin.whiteGlow,
+          theme: theme,
           preview: PieceSkinPreview(skin: skin, size: 64),
           onEquip: () {
             final settings = ref.read(userSettingsProvider);
@@ -139,7 +148,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen>
     );
   }
 
-  Widget _buildBoardGrid(List<BoardSkinDef> skins, String activeSkinId) {
+  Widget _buildBoardGrid(List<BoardSkinDef> skins, String activeSkinId, ThemeColors theme) {
     if (skins.isEmpty) return _buildEmpty();
     return GridView.builder(
       padding: const EdgeInsets.all(20),
@@ -150,11 +159,12 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen>
       itemBuilder: (_, i) {
         final skin = skins[i];
         final isActive = skin.id == activeSkinId;
-        final glowColor = skin.highlightTint ?? AppTheme.neonCyan;
+        final glowColor = skin.highlightTint ?? theme.primary;
         return _InventoryCard(
           name: skin.name,
           isActive: isActive,
           glowColor: glowColor,
+          theme: theme,
           preview: _BoardMiniPreview(skin: skin),
           onEquip: () {
             final settings = ref.read(userSettingsProvider);
@@ -185,11 +195,12 @@ class _InventoryCard extends StatelessWidget {
   final bool isActive;
   final Color glowColor;
   final Widget preview;
+  final ThemeColors theme;
   final VoidCallback onEquip;
 
   const _InventoryCard({
     required this.name, required this.isActive, required this.glowColor,
-    required this.preview, required this.onEquip,
+    required this.theme, required this.preview, required this.onEquip,
   });
 
   @override
@@ -229,17 +240,17 @@ class _InventoryCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: isActive
                     ? glowColor.withValues(alpha: 0.2)
-                    : AppTheme.neonCyan.withValues(alpha: 0.1),
+                    : theme.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                     color: isActive
                         ? glowColor
-                        : AppTheme.neonCyan.withValues(alpha: 0.4)),
+                        : theme.primary.withValues(alpha: 0.4)),
               ),
               child: Text(
                 isActive ? S.get('equipped') : S.get('equip'),
                 style: AppTheme.labelSmall.copyWith(
-                    color: isActive ? glowColor : AppTheme.neonCyan, fontSize: 10),
+                    color: isActive ? glowColor : theme.primary, fontSize: 10),
               ),
             ),
           ],

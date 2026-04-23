@@ -4,7 +4,12 @@ import '../../domain/value_objects/piece_color.dart';
 import '../../domain/value_objects/piece_type.dart';
 import '../../domain/models/skin_registry.dart';
 
-/// Renders a chess piece with the given skin — 2D/2.5D style.
+/// Renders a chess piece with clear white/black visual differentiation.
+///
+/// Design principles:
+///  - White pieces: warm cream fill (#FEFCF5→#D8CEB4), dark symbol
+///  - Black pieces: near-black fill (#2A2A32→#0C0C10), light symbol
+///  - Accent ring border taken from the skin — no ambiguity about color
 class ChessPieceWidget extends StatelessWidget {
   final Piece piece;
   final PieceSkinDef skin;
@@ -24,127 +29,138 @@ class ChessPieceWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isWhite = piece.color == PieceColor.white;
-    final faceColor = isWhite ? skin.whiteColor : skin.blackColor;
     final borderColor = isWhite ? skin.whiteBorder : skin.blackBorder;
     final glowColor = isWhite ? skin.whiteGlow : skin.blackGlow;
-    final symbol = _getSymbol(piece.currentType, isWhite);
+
+    // Always use filled solid symbol — differentiated by fill+symbol color pair
+    final symbol = _getSymbol(piece.currentType);
+
+    // Clear cream (white pieces) vs near-black (black pieces)
+    final fillGradient = isWhite
+        ? const RadialGradient(
+            center: Alignment(-0.3, -0.45),
+            radius: 0.9,
+            colors: [Color(0xFFFEFCF5), Color(0xFFCFC5A8)],
+          )
+        : const RadialGradient(
+            center: Alignment(-0.3, -0.45),
+            radius: 0.9,
+            colors: [Color(0xFF2E2E3A), Color(0xFF0C0C10)],
+          );
+
+    // Symbol: Use harmonious trim colors instead of stark black/white
+    // White piece -> Warm golden/brown trim, Black piece -> Cool silver/grey trim
+    final symbolColor =
+        isWhite ? const Color(0xFF8C7558) : const Color(0xFF9595A5);
 
     return AnimatedScale(
-      scale: isSelected ? 1.18 : 1.0,
-      duration: const Duration(milliseconds: 200),
+      scale: isSelected ? 1.15 : 1.0,
+      duration: const Duration(milliseconds: 180),
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // 2.5D shadow layer
+          // 2.5D ground shadow (only for 2.5D skins)
           if (skin.is25D)
             Positioned(
-              bottom: size * 0.02,
+              bottom: size * 0.01,
               child: Container(
-                width: size * 0.75,
-                height: size * 0.18,
+                width: size * 0.68,
+                height: size * 0.13,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(size * 0.08),
+                  borderRadius: BorderRadius.circular(size * 0.1),
                   color: Colors.black.withValues(alpha: 0.4),
                 ),
               ),
             ),
 
-          // Piece background circle
+          // Selection glow halo
+          if (isSelected)
+            Container(
+              width: size * 0.90,
+              height: size * 0.90,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: glowColor.withValues(alpha: 0.9),
+                    blurRadius: 20,
+                    spreadRadius: 4,
+                  ),
+                ],
+              ),
+            ),
+
+          // Accent ring — skin border color creates clear visual identity
+          // and acts as separator from the board square beneath
           Container(
-            width: size * 0.85,
-            height: size * 0.85,
+            width: size * 0.84,
+            height: size * 0.84,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: RadialGradient(
-                center: const Alignment(-0.3, -0.4),
-                radius: 0.8,
-                colors: isWhite
-                    ? [faceColor, faceColor.withValues(alpha: 0.85)]
-                    : [
-                        Color.lerp(faceColor, Colors.white, 0.12)!,
-                        faceColor,
-                      ],
-              ),
-              border: Border.all(
-                color: borderColor,
-                width: isSelected ? 2.5 : (isWhite ? 1.5 : 2.0),
-              ),
+              color: borderColor,
               boxShadow: [
-                // Glow effect
                 BoxShadow(
-                  color: glowColor.withValues(alpha: isSelected ? 0.8 : 0.4),
-                  blurRadius: isSelected ? 16 : 8,
-                  spreadRadius: isSelected ? 2 : 0,
+                  color: Colors.black.withValues(alpha: 0.55),
+                  blurRadius: 5,
+                  offset: const Offset(1, 3),
                 ),
-                // Base shadow for depth
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.5),
-                  blurRadius: 4,
-                  offset: const Offset(1, 2),
-                ),
-                // Inner highlight for white pieces
-                if (isWhite)
-                  BoxShadow(
-                    color: Colors.white.withValues(alpha: 0.3),
-                    blurRadius: 3,
-                    offset: const Offset(-1, -1),
-                  ),
               ],
+            ),
+          ),
+
+          // Main piece body (slightly smaller — shows accent ring as border)
+          Container(
+            width: size * 0.74,
+            height: size * 0.74,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: fillGradient,
             ),
             child: Center(
               child: Text(
                 symbol,
                 style: TextStyle(
-                  fontSize: size * 0.56,
-                  color: isWhite
-                      ? const Color(0xFF1A1A2E)
-                      : const Color(0xFFE8E8FF),
+                  // White pieces need slightly larger font to match the visual weight
+                  // of black pieces (dark ink on cream recedes vs light on dark).
+                  // Pawn glyph (♟) is inherently wider — scale it down to match others.
+                  fontSize: _symbolFontSize(piece.currentType, isWhite, size),
+                  color: symbolColor,
                   fontWeight: FontWeight.w900,
+                  height: 1.0,
                   shadows: [
                     Shadow(
-                      color: isWhite
-                          ? borderColor.withValues(alpha: 0.5)
-                          : Colors.white.withValues(alpha: 0.3),
-                      blurRadius: 6,
-                    ),
-                    Shadow(
-                      color: Colors.black.withValues(alpha: 0.6),
-                      blurRadius: 3,
-                      offset: const Offset(1, 1),
+                      color: Colors.black.withValues(alpha: 0.35),
+                      blurRadius: 2,
+                      offset: const Offset(0.5, 1.0),
                     ),
                   ],
                 ),
               ),
             ),
           ),
-
-          // Selection ring
-          if (isSelected)
-            Container(
-              width: size * 0.9,
-              height: size * 0.9,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: borderColor.withValues(alpha: 0.6),
-                  width: 1,
-                ),
-              ),
-            ),
         ],
       ),
     );
   }
 
-  String _getSymbol(PieceType type, bool isWhite) {
-    // Use filled symbols that look consistent in all skins
+  /// Per-type font size with corrections:
+  ///  - White symbols: +0.03× to compensate dark-on-light visual shrinkage
+  ///  - Pawn: −0.05× because ♟ renders much wider/taller than other glyphs
+  double _symbolFontSize(PieceType type, bool isWhite, double size) {
+    final base = isWhite ? size * 0.51 : size * 0.48;
+    if (type == PieceType.pawn) return base - size * 0.05;
+    return base;
+  }
+
+  /// All pieces use filled (solid silhouette) symbols for the embossed look.
+  String _getSymbol(PieceType type) {
     switch (type) {
-      case PieceType.pawn:   return isWhite ? '♙' : '♟';
-      case PieceType.rook:   return isWhite ? '♖' : '♜';
-      case PieceType.knight: return isWhite ? '♘' : '♞';
-      case PieceType.bishop: return isWhite ? '♗' : '♝';
-      case PieceType.queen:  return isWhite ? '♕' : '♛';
-      case PieceType.king:   return isWhite ? '♔' : '♚';
+      case PieceType.pawn:   return '♙';
+      case PieceType.rook:   return '♖';
+      case PieceType.knight: return '♘';
+      case PieceType.bishop: return '♗';
+      case PieceType.queen:  return '♕';
+      case PieceType.king:   return '♔';
     }
   }
 }
@@ -161,66 +177,85 @@ class PieceSkinPreview extends StatelessWidget {
     return Stack(
       alignment: Alignment.center,
       children: [
-        // Show white piece (knight) as preview
+        // White piece (king)
         Container(
-          width: size * 0.85,
-          height: size * 0.85,
+          width: size * 0.84,
+          height: size * 0.84,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            gradient: RadialGradient(
-              center: const Alignment(-0.3, -0.4),
-              radius: 0.8,
-              colors: [skin.whiteColor, skin.whiteColor.withValues(alpha: 0.85)],
-            ),
-            border: Border.all(color: skin.whiteBorder, width: 2),
-            boxShadow: [
-              BoxShadow(color: skin.whiteGlow.withValues(alpha: 0.5), blurRadius: 14),
-              BoxShadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 4, offset: const Offset(1, 2)),
-            ],
+            color: skin.whiteBorder,
+            boxShadow: [BoxShadow(color: skin.whiteGlow.withValues(alpha: 0.5), blurRadius: 10)],
           ),
           child: Center(
-            child: Text(
-              '♘',
-              style: TextStyle(
-                fontSize: size * 0.56,
-                color: const Color(0xFF1A1A2E),
-                fontWeight: FontWeight.w900,
-                shadows: [
-                  Shadow(color: skin.whiteBorder.withValues(alpha: 0.5), blurRadius: 6),
-                ],
+            child: Container(
+              width: size * 0.74,
+              height: size * 0.74,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [Color(0xFFFEFCF5), Color(0xFFCFC5A8)],
+                ),
+              ),
+              child: Center(
+                child: Text(
+                  '♔',
+                  style: TextStyle(
+                    fontSize: size * 0.51,
+                    color: const Color(0xFF8C7558),
+                    fontWeight: FontWeight.w900,
+                    height: 1.0,
+                    shadows: [
+                      Shadow(
+                        color: Colors.black.withValues(alpha: 0.35),
+                        blurRadius: 2,
+                        offset: const Offset(0.5, 1.0),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
         ),
-        // Show black piece overlay (rook)
+        // Black piece overlay (rook) — bottom-right
         Positioned(
           bottom: 0,
           right: 0,
           child: Container(
-            width: size * 0.42,
-            height: size * 0.42,
+            width: size * 0.46,
+            height: size * 0.46,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: RadialGradient(
-                center: const Alignment(-0.3, -0.4),
-                radius: 0.8,
-                colors: [
-                  Color.lerp(skin.blackColor, Colors.white, 0.15)!,
-                  skin.blackColor,
-                ],
-              ),
-              border: Border.all(color: skin.blackBorder, width: 1.5),
-              boxShadow: [
-                BoxShadow(color: skin.blackGlow.withValues(alpha: 0.5), blurRadius: 8),
-              ],
+              color: skin.blackBorder,
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.5), blurRadius: 4)],
             ),
             child: Center(
-              child: Text(
-                '♜',
-                style: TextStyle(
-                  fontSize: size * 0.26,
-                  color: const Color(0xFFE8E8FF),
-                  fontWeight: FontWeight.w900,
+              child: Container(
+                width: size * 0.38,
+                height: size * 0.38,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [Color(0xFF2E2E3A), Color(0xFF0C0C10)],
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    '♖',
+                    style: TextStyle(
+                      fontSize: size * 0.24,
+                      color: const Color(0xFF9595A5),
+                      fontWeight: FontWeight.w900,
+                      height: 1.0,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withValues(alpha: 0.35),
+                          blurRadius: 2,
+                          offset: const Offset(0.5, 1.0),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -230,3 +265,5 @@ class PieceSkinPreview extends StatelessWidget {
     );
   }
 }
+
+

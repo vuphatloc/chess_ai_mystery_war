@@ -1,3 +1,5 @@
+import '../value_objects/piece_color.dart';
+
 /// All configuration for a single game session.
 /// Passed from GameSetupScreen → GameScreen.
 
@@ -60,6 +62,8 @@ class GameConfig {
   final MysterySubType? mysterySubType;
   final ChampionSubType? championSubType;
   final ChampionSession? championSession;
+  /// Color the human player controls (white by default). Bot plays the opposite.
+  final PieceColor playerColor;
 
   const GameConfig({
     required this.mode,
@@ -69,8 +73,10 @@ class GameConfig {
     this.mysterySubType,
     this.championSubType,
     this.championSession,
+    this.playerColor = PieceColor.white,
   });
 
   bool get isOnePlayer => playerCount == PlayerCount.one;
   bool get hasTimeLimit => !timeControl.isUnlimited;
+  PieceColor get botColor => playerColor.opposite;
 }

@@ -1,23 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../domain/providers/user_provider.dart';
+import '../../../domain/models/skin_registry.dart';
 import '../../presentation/widgets/common_widgets.dart';
 
-class TutorialScreen extends StatefulWidget {
+class TutorialScreen extends ConsumerStatefulWidget {
   const TutorialScreen({super.key});
 
   @override
-  State<TutorialScreen> createState() => _TutorialScreenState();
+  ConsumerState<TutorialScreen> createState() => _TutorialScreenState();
 }
 
-class _TutorialScreenState extends State<TutorialScreen> {
+class _TutorialScreenState extends ConsumerState<TutorialScreen> {
   int _currentStep = 0;
   final PageController _pageController = PageController();
 
-  final List<_TutorialStep> _steps = [
+  List<_TutorialStep> get _steps {
+    final theme = SkinRegistry.getTheme(ref.watch(userSettingsProvider).themeIndex);
+    return [
     _TutorialStep(
       title: 'The Board',
       emoji: '♟',
-      color: AppTheme.neonCyan,
+      color: theme.primary,
       content: '''Chess is played on an 8×8 board with 64 squares, alternating in light and dark colors.
 
 Each player starts with 16 pieces arranged on their side. You play as White and go first.
@@ -27,7 +32,7 @@ The board columns are called **Files** (a–h), and rows are called **Ranks** (1
     _TutorialStep(
       title: 'The Pieces',
       emoji: '♔',
-      color: AppTheme.neonPurple,
+      color: theme.secondary,
       content: '''Each piece moves differently:
 
 ♔ **King** — One square in any direction. Protect at all costs!
@@ -63,7 +68,7 @@ Always watch out for your King's safety. The game ends the moment checkmate occu
     _TutorialStep(
       title: 'Mystery Mode',
       emoji: '🌫',
-      color: AppTheme.neonPurple,
+      color: theme.secondary,
       content: '''Mystery Mode adds exciting twists!
 
 🌫 **Fog of War** — You can only see squares your pieces can reach.
@@ -74,7 +79,8 @@ Always watch out for your King's safety. The game ends the moment checkmate occu
 
 The core chess rules still apply. Master Normal mode first, then dive into Mystery!''',
     ),
-  ];
+    ];
+  }
 
   @override
   void dispose() {

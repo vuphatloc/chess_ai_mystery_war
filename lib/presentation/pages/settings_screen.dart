@@ -23,6 +23,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     ref.watch(languageProvider);
     final settings = ref.watch(userSettingsProvider);
     final themes = SkinRegistry.themes;
+    final activeTheme = SkinRegistry.getTheme(settings.themeIndex);
 
     return Scaffold(
       body: ParticleBackground(
@@ -44,7 +45,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       title: S.get('bg_music'),
                       description: S.get('bg_music_desc'),
                       value: settings.musicEnabled,
-                      color: AppTheme.neonCyan,
+                      color: activeTheme.primary,
                       onChanged: (v) {
                         ref.read(userSettingsProvider.notifier)
                             .update(settings.copyWith(musicEnabled: v));
@@ -57,7 +58,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       title: S.get('sfx'),
                       description: S.get('sfx_desc'),
                       value: settings.sfxEnabled,
-                      color: AppTheme.neonCyan,
+                      color: activeTheme.primary,
                       onChanged: (v) {
                         ref.read(userSettingsProvider.notifier)
                             .update(settings.copyWith(sfxEnabled: v));
@@ -75,7 +76,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       title: S.get('move_hints'),
                       description: S.get('move_hints_desc'),
                       value: settings.hintsEnabled,
-                      color: AppTheme.neonPurple,
+                      color: activeTheme.secondary,
                       onChanged: (v) {
                         ref.read(userSettingsProvider.notifier)
                             .update(settings.copyWith(hintsEnabled: v));
@@ -87,7 +88,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     // ── Language ───────────────────────────────────────────
                     _buildSectionLabel(S.get('language')),
                     const SizedBox(height: 12),
-                    _buildLanguageSelector(settings.language),
+                    _buildLanguageSelector(settings.language, activeTheme),
 
                     const SizedBox(height: 24),
 
@@ -106,7 +107,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     _buildTutorialCard(context),
 
                     const SizedBox(height: 32),
-                    _buildAppInfo(),
+                    _buildAppInfo(activeTheme),
                     const SizedBox(height: 20),
                   ],
                 ),
@@ -174,7 +175,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Widget _buildLanguageSelector(String currentLang) {
+  Widget _buildLanguageSelector(String currentLang, ThemeColors theme) {
     final languages = AppStrings.availableLanguages;
     return Wrap(
       spacing: 10,
@@ -191,14 +192,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             duration: const Duration(milliseconds: 200),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: BoxDecoration(
-              color: isSelected ? AppTheme.neonCyan.withValues(alpha: 0.1) : AppTheme.bgCard,
+              color: isSelected ? theme.primary.withValues(alpha: 0.1) : AppTheme.bgCard,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: isSelected ? AppTheme.neonCyan : AppTheme.textMuted.withValues(alpha: 0.3),
+                color: isSelected ? theme.primary : AppTheme.textMuted.withValues(alpha: 0.3),
                 width: isSelected ? 1.5 : 1,
               ),
               boxShadow: isSelected
-                  ? [BoxShadow(color: AppTheme.neonCyan.withValues(alpha: 0.25), blurRadius: 10)]
+                  ? [BoxShadow(color: theme.primary.withValues(alpha: 0.25), blurRadius: 10)]
                   : [],
             ),
             child: Row(
@@ -208,7 +209,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 const SizedBox(width: 8),
                 Text(lang['name']!,
                     style: AppTheme.bodyMedium.copyWith(
-                        color: isSelected ? AppTheme.neonCyan : AppTheme.textSecondary,
+                        color: isSelected ? theme.primary : AppTheme.textSecondary,
                         fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400)),
               ],
             ),
@@ -400,12 +401,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Widget _buildAppInfo() {
+  Widget _buildAppInfo(ThemeColors theme) {
     return Center(
       child: Column(
         children: [
-          const Text('♞', style: TextStyle(fontSize: 28,
-              shadows: [Shadow(color: AppTheme.neonCyan, blurRadius: 12)])),
+          Text('♞', style: TextStyle(fontSize: 28,
+              shadows: [Shadow(color: theme.primary, blurRadius: 12)])),
           const SizedBox(height: 6),
           Text('Chess AI: Mystery War', style: AppTheme.titleMedium),
           const SizedBox(height: 4),
