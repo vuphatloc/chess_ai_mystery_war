@@ -21,8 +21,6 @@ dependencies:
   shared_preferences: ^2.2.2
   encrypt: ^5.0.1
 
-  # Ads
-  google_mobile_ads: ^3.0.0
 
   # Network Connectivity
   connectivity_plus: ^5.0.0
